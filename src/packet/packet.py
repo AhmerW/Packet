@@ -6,7 +6,7 @@ from packet.handler import EventHandler
 class Packet(object):
     """ 
     Main Packet class. Holds all objects and is the 
-    'linker' between all objects. 
+    'linker'.
     """
     default_args = {
         'cli': False
@@ -20,9 +20,7 @@ class Packet(object):
     def load(self, args : List[str]):
         with ArgumentParser(args, required = self.__class__.default_args) as parser:
             args = parser.parse()
-            
+        print(args)
         self._cli = bool(args.get('cli'))
-        self.handler = EventHandler(self._cli)
-        if not self._cli:
-            pass
+        self.handler = EventHandler(self._cli).start()
         

@@ -1,6 +1,6 @@
 from typing import List, Dict, Union, Any
 
-from packet.common.converters import toBoolean
+from packet.common.converters import toBoolean, toInt
 
     
 class ArgumentParser(object):
@@ -8,7 +8,7 @@ class ArgumentParser(object):
     
     def __init__(self, data : List[str], required : Dict[str, Any] = dict()):
         self.data : List[str] = data
-        self.parsed : Dict[str, str] = {}
+        self.parsed : Dict[str, Union[str, int, bool]] = {}
         self.required = required
         
     def __enter__(self):
@@ -28,14 +28,18 @@ class ArgumentParser(object):
             if (i + 1) < _size:
                 _val = self.data[i+1]
                 res = toBoolean(_val.lower())
+                
                 if not res is None:
                     _val = res
+                else:
+                    res2 = toInt(_val)
+                    if not res2 is None:
+                        _val = res2
                 self.parsed[value.replace(value[0], '')] = _val
                 
         if self.required:
             for k, v in self.required.items():
-                s = self.parsed.get(k)
-                if isinstance(s, type(v)):
+                if isinstance(self.parsed.get(k), type(v)):
                     continue
                 self.parsed[k] = v
             
