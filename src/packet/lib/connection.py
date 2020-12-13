@@ -9,3 +9,6 @@ class Connections(object):
         
     def __call__(self):
         return self.connections
+    
+    def add(self, con):
+        self.connections.append(con)

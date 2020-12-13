@@ -3,33 +3,34 @@ import threading
 from functools import partial
 
 class Listener(object):
-    create_socket = True 
-    def __init__(self, callback, threaded = True, silence = False ):
+    blacklist_active : bool = True 
+    def __init__(self, 
+            callback, 
+            threaded = True, 
+            silence = False, 
+            blacklist = None, 
+            create_obj = True,
+            blacklist_active = True
+        ):
         if not callable(callback):
-            raise TypeError("Invalid callable %s" % type(callback))
+            raise TypeError("Invalid callable %s" % type(callback))    
+        if not silence is False and not callable(silence):
+            silence = False 
+            # raise TypeError("Silence argument must be a callable object")
+        
         self._threaded = threaded
         self._thread = None 
+        self.blacklist = blacklist
         self.func = callback
         self.listening : bool = False 
+        self.blacklist_active = blacklist_active
         self.con = None 
         self.count : int = 0
-        if self.__class__.create_socket:
+        if create_obj:
             self._createCon()
-            
-        if not silence is False and not callable(silence):
-            raise TypeError("Silence argument must be a callable object")
         self.silence = silence 
             
-    @property
-    def threaded(self):
-        return self._threaded 
-    
-    @threaded.setter
-    def threadedSetter(self, value : bool):
-        if not isinstance(value, bool) or not isinstance(value, int):
-            raise TypeError("Invalid value for theaded attribute %s" % type(value))
-        
-        self._threaded = bool(threaded) if hasattr(threaded, '__bool__') else threaded
+   
             
     def _createCon(self):
         self.con = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
@@ -38,7 +39,13 @@ class Listener(object):
         self.con.listen(*opt, **kwopt)
         while self.listening:
             try:
-                self.func(*self.con.accept())
+                con, addr = self.con.accept()
+                if self.blacklist_active:
+                    if self.blacklist.has(addr):
+                        con.close()
+                        continue
+    
+                self.func(con, addr)
                 self.count += 1
             except Exception as e:
                 if not self.silence is False:
