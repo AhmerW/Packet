@@ -1,59 +1,76 @@
-from PyQt5 import QtWidgets, QtCore
 from functools import partial
 from typing import List 
+import os
+from PyQt5 import QtWidgets, QtCore
 
 
 from packet.common.singleton import Singleton
 from packet.ui.window import PacketWindow
 from packet.lib.network import Listener
 
-from packet.ui.dialogs import TestDialog
+from packet.ui.dialogs import Dialog
 
 mapped = {
     "news": 1,
-    "create_a_connection": 3
+    "create_a_connection": (3, "connectionHandling")
 }
+
 
 class Events(object):
     def __init__(self, window):
         self.window = window
+    
+
+        
+    def connectionHandling(self, event):
+        if event == 'create_a_connection':
+            obj = Dialog(self.window, os.path.join('inputs', 'basic'), start=False)
+            obj.fromData([
+                {
+                    "label": "Hello",
+                    "label": "hia",
+                },
+            ])
+            obj.start()
+        
+    # events
 
     def itemClicked(self, obj, col):
-        text = obj.text(col)
+        text = obj.text(col).lower().replace(' ', '_')
         data = mapped.get(
-            text.lower().replace(' ', '_'), 
-            0
+            text, 
+            list()
         )
-        func = None
-        if isinstance(data, list):
-            if len(data) == 1:
-                index = data[0]
-            elif len(data) == 2:
-                index, func = data
-            else: return 
-        else:
-            index = data 
+        if not isinstance(data, list) and not isinstance(data, tuple):
+            data = [data]
+        func, index = None, 0
+        for value in data:
+            if isinstance(value, int):
+                index = value 
+            elif callable(value) or isinstance(value, str):
+                func = value
+        
         if not index is None:   
             self.window.mainFrame.setCurrentIndex(index)
+            
+        if isinstance(func, str):
+            func = getattr(self, func)
         if callable(func):
-            func()
-        if index == 3:
-            print("a")
-            obj = TestDialog(self.window)
-            obj.show()
-            obj.exec_()
+            func(text)
+
       
         
     def buttonClicked(self, button):
         pass
 
 class EventHandler(object, metaclass = Singleton):
-    def __init__(self, cli = False):
-        self._cli = cli
+    def __init__(self, packet):
+        self.packet = packet
+        self._cli = packet.cli
         self.app : QtWidgets.QApplication = None
         self.window : PacketWindow = None
         self.events : Events = None
-        self.listeners : List[Listener] = list()
+        self.user = packet.user
         
     def loadWindow(self):
         self.app = QtWidgets.QApplication([])

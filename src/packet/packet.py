@@ -2,6 +2,7 @@ from typing import List, Union, Dict
 
 from packet.common.argparse import ArgumentParser
 from packet.handler import EventHandler
+from packet.lib.clients import User
 
 default_args = {
     'cli': False
@@ -9,17 +10,16 @@ default_args = {
 
 class Packet(object):
     """ 
-    Main Packet class. Holds all objects and is the 
-    'linker'.
+    Main Packet class. 
     """
     def __init__(self):
         self.handler : EventHandler = None
+        self.user = User()
     
     
     def load(self, args : List[str]):
         with ArgumentParser(args, required = default_args) as parser:
             args = parser.parse()
-        print(args)
-        self._cli = bool(args.get('cli'))
-        self.handler = EventHandler(self._cli).start()
+        self.cli = bool(args.get('cli'))
+        self.handler = EventHandler(self).start()
         
