@@ -9,6 +9,7 @@ from packet.ui.window import PacketWindow
 from packet.lib.network import Listener
 
 from packet.ui.dialogs import Dialog
+from packet.common.validators import Regex, validateEntries
 
 mapped = {
     "news": 1,
@@ -17,21 +18,23 @@ mapped = {
 
 
 class Events(object):
-    def __init__(self, window):
+    def __init__(self, window, user):
         self.window = window
+        self.user = user
     
 
         
     def connectionHandling(self, event):
+        def processConnection():
+            validated = validateEntries({
+                obj.entry_port: Regex.integer_only,
+                obj.entry_id: Regex.integer_only
+            })
+            print(validated)
         if event == 'create_a_connection':
-            obj = Dialog(self.window, os.path.join('inputs', 'basic'), start=False)
-            obj.fromData([
-                {
-                    "label": "Hello",
-                    "label": "hia",
-                },
-            ])
+            obj = Dialog(self.window, 'create_connection', start=False, callback = processConnection)
             obj.start()
+     
         
     # events
 
@@ -75,7 +78,7 @@ class EventHandler(object, metaclass = Singleton):
     def loadWindow(self):
         self.app = QtWidgets.QApplication([])
         self.window = PacketWindow()
-        self.events = Events(self.window)
+        self.events = Events(self.window, self.user)
         self.window.show()
         
     

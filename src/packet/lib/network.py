@@ -2,6 +2,8 @@ import socket
 import threading 
 from functools import partial
 
+
+
 class Listener(object):
     blacklist_active : bool = True 
     def __init__(self, 
@@ -15,7 +17,7 @@ class Listener(object):
         if not callable(callback):
             raise TypeError("Invalid callable %s" % type(callback))    
         if not silence is False and not callable(silence):
-            silence = False 
+            silence = False
             # raise TypeError("Silence argument must be a callable object")
         
         self._threaded = threaded
