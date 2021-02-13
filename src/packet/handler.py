@@ -26,11 +26,20 @@ class Events(object):
         
     def connectionHandling(self, event):
         def processConnection():
-            validated = validateEntries({
+            matched = validateEntries({
                 obj.entry_port: Regex.integer_only,
                 obj.entry_id: Regex.integer_only
             })
-            print(validated)
+            matched[obj.entry_ip] = Regex.match(Regex.craftContainer(
+                Regex.integer_only, ['.'], index = 1), 
+                obj.entry_ip.text()
+            )
+            _temp = matched[obj.entry_id]
+            matched[obj.entry_id] = True if not obj.entry_id.text().strip() else _temp 
+            matched = all(matched.values())
+            if not matched:
+                pass
+    
         if event == 'create_a_connection':
             obj = Dialog(self.window, 'create_connection', start=False, callback = processConnection)
             obj.start()
