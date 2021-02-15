@@ -7,14 +7,29 @@ from PyQt5 import QtWidgets, QtCore
 from packet.common.singleton import Singleton
 from packet.ui.window import PacketWindow
 from packet.lib.network import Listener
-
-from packet.ui.dialogs import Dialog
+from packet.ui.errors import errorBox
+from packet.ui.dialogs import DialogWidget, BaseDialog
 from packet.common.validators import Regex, validateEntries
 
 mapped = {
     "news": 1,
     "create_a_connection": (3, "connectionHandling")
 }
+
+"""
+            matched = validateEntries({
+                obj.entry_port: Regex.integer_only,
+                obj.entry_id: Regex.integer_only
+            })
+            matched[obj.entry_ip] = all([
+                d.isdigit() or d == "."
+                for d in obj.entry_ip.text()
+            ])
+            _temp = matched[obj.entry_id]
+            matched[obj.entry_id] = True if not obj.entry_id.text().strip() else _temp 
+            if not all(matched.values()):
+                errorBox("Invalid input.")
+"""
 
 
 class Events(object):
@@ -26,23 +41,16 @@ class Events(object):
         
     def connectionHandling(self, event):
         def processConnection():
-            matched = validateEntries({
-                obj.entry_port: Regex.integer_only,
-                obj.entry_id: Regex.integer_only
-            })
-            matched[obj.entry_ip] = Regex.match(Regex.craftContainer(
-                Regex.integer_only, ['.'], index = 1), 
-                obj.entry_ip.text()
-            )
-            _temp = matched[obj.entry_id]
-            matched[obj.entry_id] = True if not obj.entry_id.text().strip() else _temp 
-            matched = all(matched.values())
-            if not matched:
-                pass
+            return
+
     
         if event == 'create_a_connection':
-            obj = Dialog(self.window, 'create_connection', start=False, callback = processConnection)
-            obj.start()
+            DialogWidget(
+                self.window, 
+                start = True, 
+                callback = processConnection,
+                ui = "create_con"
+                )
      
         
     # events
